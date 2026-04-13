@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+
+:root {
+  font-family: 'Instrument Sans', sans-serif;
+  --font-body: 'Instrument Sans', sans-serif;
+  --font-display: 'Instrument Serif', serif;
+  --color-bg: #f6efe5;
+  --color-copy: #201c17;
+  --color-copy-soft: rgba(32, 28, 23, 0.72);
+  --color-accent-strong: #b8552e;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--color-copy);
+  background:
+    radial-gradient(circle at top left, rgba(255, 160, 112, 0.18), transparent 34%),
+    radial-gradient(circle at top right, rgba(75, 167, 153, 0.12), transparent 22%),
+    linear-gradient(180deg, #f7efe3 0%, #f4eadc 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+#root {
+  min-height: 100vh;
+}

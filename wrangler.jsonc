@@ -1,0 +1,63 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "deltaproof",
+	"main": "worker/index.ts",
+	"compatibility_date": "2026-04-09",
+	"assets": {
+		"not_found_handling": "single-page-application"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"triggers": {
+		"crons": ["0 */6 * * *"]
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "deltaproof",
+			"database_id": "eb4e21f7-9e96-418d-8c54-17deed3004c8"
+		}
+	]
+	/**
+	 * Smart Placement
+	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
+	 */
+	// "placement": {  "mode": "smart" }
+	/**
+	 * Bindings
+	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
+	 * databases, object storage, AI inference, real-time communication and more.
+	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
+	 */
+	/**
+	 * Environment Variables
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+	 * Note: Use secrets to store sensitive data.
+	 * https://developers.cloudflare.com/workers/configuration/secrets/
+	 */
+	// "vars": {
+	// 	"OLLAMA_BASE_URL": "http://localhost:11434/api",
+	// 	"OLLAMA_MODEL": "gemma4:31b",
+	// 	"OLLAMA_FALLBACK_MODEL": "gemma4:e4b",
+	// 	"OLLAMA_EMBED_MODEL": "embeddinggemma",
+	// 	"OLLAMA_EMBED_DIMENSIONS": "384",
+	// 	"POLAR_CHECKOUT_URL": "https://polar.sh/checkout/..."
+	// }
+	// "d1_databases": [
+	// 	{ "binding": "DB", "database_name": "deltaproof", "database_id": "replace-after-create" }
+	// ]
+	/**
+	 * Service Bindings (communicate between multiple Workers)
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
+	 */
+	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+}
