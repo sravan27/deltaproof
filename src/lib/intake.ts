@@ -1,6 +1,8 @@
 import type {
   AnalyzeRequest,
   ArtifactInput,
+  BuyerIntentReceipt,
+  BuyerIntentRequest,
   DashboardPayload,
   PortfolioBrief,
   WorkspaceSummary,
@@ -84,6 +86,22 @@ export async function requestPortfolioBriefMarkdown(): Promise<string> {
   }
 
   return response.text()
+}
+
+export async function submitBuyerIntent(payload: BuyerIntentRequest): Promise<BuyerIntentReceipt> {
+  const response = await fetch('/api/buyer-intents', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error('DeltaProof could not save this buyer intent.')
+  }
+
+  return (await response.json()) as BuyerIntentReceipt
 }
 
 async function extractArtifactFromFile(file: File): Promise<ArtifactInput | null> {

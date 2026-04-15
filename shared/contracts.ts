@@ -148,7 +148,32 @@ export interface PricingCard {
   plan: string
   price: string
   promise: string
+  buyerFit: string
+  paybackWindow: string
+  projectedReturn: string
+  urgencyLabel: string
+  ctaLabel: string
   checkoutUrl?: string
+}
+
+export interface BuyerIntentRequest {
+  name: string
+  email: string
+  company: string
+  notes?: string
+  workspaceName: string
+  workspaceSlug: string
+  plan: string
+  moneyAtRiskTotal: number
+  shadowPipelineValue: number
+  decisionWindowDays: number
+  source: 'pricing_panel'
+}
+
+export interface BuyerIntentReceipt {
+  ok: true
+  leadId: string
+  queuedAt: string
 }
 
 export interface RuntimeInfo {

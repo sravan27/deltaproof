@@ -13,6 +13,7 @@ Live deployment:
 - Produces evidence-backed findings, money-at-risk estimates, semantic motifs, a shadow pipeline of sellable offers, an operator console, and a ready-to-send change-order packet
 - Generates an executive decision brief in Markdown so the commercial truth can travel into Slack, docs, email, and board prep without losing its edge
 - Generates a portfolio command brief that ranks every tracked workspace by decision window, so leaders know which client conversation cannot slip this week
+- Turns the pricing panel into a real conversion surface with recommended plan, payback framing, and buyer-intent capture
 - Stores a watchtower timeline that explains what changed since the last run instead of making the team rediscover the same revenue leak twice
 - Exposes a multi-workspace command center so leaders can switch across live revenue surfaces instead of living inside one client at a time
 - Supports local narrative refinement through Ollama with the latest Gemma 4 models
@@ -67,6 +68,7 @@ On the seeded `Northstar Studio` workspace, the current engine produces:
 - Markdown brief routes for executive export by workspace
 - Portfolio command brief APIs for book-level weekly operating review
 - Decision-window estimation over the hottest live pressure track in each workspace
+- Buyer-intent capture stored in D1 so serious demand is not lost when checkout is not configured yet
 - Gemma 4 model path:
   - `gemma4:e4b` for efficient local execution
   - `gemma4:31b` for higher-end rewrite quality
@@ -84,7 +86,9 @@ On the seeded `Northstar Studio` workspace, the current engine produces:
 - [`worker/index.ts`](/Users/sravansridhar/Documents/codex-experimentation/worker/index.ts): API routes for demo, catalog, workspace hydration, analysis, and the autonomous scheduled sweep entrypoint
 - [`shared/portfolio.ts`](/Users/sravansridhar/Documents/codex-experimentation/shared/portfolio.ts): portfolio command-brief generation and Markdown rendering across tracked workspaces
 - [`worker/lib/catalog.ts`](/Users/sravansridhar/Documents/codex-experimentation/worker/lib/catalog.ts): workspace-summary catalog assembly across D1 and seeded fixtures
+- [`worker/lib/persistence.ts`](/Users/sravansridhar/Documents/codex-experimentation/worker/lib/persistence.ts): dashboard persistence and buyer-intent capture in D1
 - [`shared/brief.ts`](/Users/sravansridhar/Documents/codex-experimentation/shared/brief.ts): executive brief generation and Markdown rendering
+- [`migrations/0002_buyer_intents.sql`](/Users/sravansridhar/Documents/codex-experimentation/migrations/0002_buyer_intents.sql): buyer-intent pipeline schema for monetization capture
 - [`worker/lib/ollama.ts`](/Users/sravansridhar/Documents/codex-experimentation/worker/lib/ollama.ts): local Gemma rewrite hook for findings, packet language, and operator moves
 - [`worker/lib/semantic.ts`](/Users/sravansridhar/Documents/codex-experimentation/worker/lib/semantic.ts): EmbeddingGemma/Ollama motif enrichment
 - [`worker/lib/watchtower.ts`](/Users/sravansridhar/Documents/codex-experimentation/worker/lib/watchtower.ts): history diffing, watchtower pulse generation, and duplicate-save protection
@@ -102,6 +106,14 @@ npm install
 
 ```bash
 cp .dev.vars.example .dev.vars
+```
+
+You can wire one generic Polar checkout or separate links for the two monetization motions:
+
+```bash
+POLAR_CHECKOUT_URL=https://polar.sh/checkout/...
+POLAR_CHECKOUT_URL_WATCHTOWER=https://polar.sh/checkout/...
+POLAR_CHECKOUT_URL_COMMAND=https://polar.sh/checkout/...
 ```
 
 3. Optional but recommended: pull Gemma 4 locally through Ollama:
@@ -137,8 +149,8 @@ npm run deploy
 ## Next commercial moves
 
 - Set `POLAR_CHECKOUT_URL` for a live buy path
+- Route buyer-intent submissions into outbound follow-up so DeltaProof can close or reactivate warm demand automatically
 - Add authenticated multi-workspace storage on top of the existing snapshot schema
-- Add outbound alert delivery so the watchtower can push the operator instead of waiting to be opened
 - Push more artifacts into the eval loop so every new pricing pattern sharpens the engine instead of weakening it
 
 ## Why teams keep using it

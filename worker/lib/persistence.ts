@@ -1,4 +1,4 @@
-import type { DashboardPayload } from '../../shared/contracts'
+import type { BuyerIntentRequest, DashboardPayload } from '../../shared/contracts'
 import { toWorkspaceSlug } from '../../shared/slug'
 import type { AppEnv } from './types'
 import type { HistoricalDashboardSnapshot } from './watchtower'
@@ -109,6 +109,57 @@ export async function listRecentWorkspaces(
     .all<{ slug: string; name: string }>()
 
   return result.results ?? []
+}
+
+export async function saveBuyerIntent(
+  env: AppEnv,
+  intent: BuyerIntentRequest,
+): Promise<{ leadId: string; queuedAt: string }> {
+  const leadId = crypto.randomUUID()
+  const queuedAt = new Date().toISOString()
+
+  if (!env.DB) {
+    return { leadId, queuedAt }
+  }
+
+  await env.DB.prepare(
+    `
+      insert into buyer_intents (
+        id,
+        created_at,
+        source,
+        name,
+        email,
+        company,
+        notes,
+        workspace_name,
+        workspace_slug,
+        plan,
+        money_at_risk,
+        shadow_pipeline,
+        decision_window_days
+      )
+      values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+  )
+    .bind(
+      leadId,
+      queuedAt,
+      intent.source,
+      intent.name,
+      intent.email,
+      intent.company,
+      intent.notes ?? null,
+      intent.workspaceName,
+      intent.workspaceSlug,
+      intent.plan,
+      intent.moneyAtRiskTotal,
+      intent.shadowPipelineValue,
+      intent.decisionWindowDays,
+    )
+    .run()
+
+  return { leadId, queuedAt }
 }
 
 function isCurrentDashboardPayload(payload: unknown): payload is DashboardPayload {

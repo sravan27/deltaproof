@@ -6,4 +6,6 @@ export interface AppEnv extends Env {
   OLLAMA_EMBED_DIMENSIONS?: string
   OLLAMA_API_KEY?: string
   POLAR_CHECKOUT_URL?: string
+  POLAR_CHECKOUT_URL_WATCHTOWER?: string
+  POLAR_CHECKOUT_URL_COMMAND?: string
 }

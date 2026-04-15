@@ -157,6 +157,11 @@ const DEFAULT_PRICING: PricingCard = {
   plan: 'Launch partner',
   price: '$499/mo + 3% on recovered scope',
   promise: 'Recover one missed change order and DeltaProof pays for itself for the year.',
+  buyerFit: 'Best for one live workspace that already has real delivery drift.',
+  paybackWindow: 'Usually pays back on the first recovered change order.',
+  projectedReturn: 'Turn visible scope leakage into a paid client decision before it hardens into expectation.',
+  urgencyLabel: 'Revenue window live',
+  ctaLabel: 'Activate revenue watchtower',
 }
 
 export function buildDemoDashboard(checkoutUrl?: string): DashboardPayload {
@@ -212,6 +217,15 @@ export function buildDashboard(params: {
   const packet = buildPacket(findings, baseline, params.workspaceName)
   const moneyAtRiskTotal = findings.reduce((total, finding) => total + finding.moneyAtRisk, 0)
   const shadowPipelineValue = monetizationPaths.reduce((total, path) => total + path.expectedValue, 0)
+  const pricing = buildPricingCard({
+    overview: {
+      moneyAtRiskTotal,
+      shadowPipelineValue,
+    },
+    decisionWindow,
+    topOpportunity: monetizationPaths[0],
+    checkoutUrl: params.checkoutUrl,
+  })
 
   return {
     workspaceName: params.workspaceName,
@@ -315,15 +329,69 @@ export function buildDashboard(params: {
         metric: `${decisionWindow.days} day ${decisionWindow.label.toLowerCase()} window`,
       },
     ],
-    pricing: {
-      ...DEFAULT_PRICING,
-      checkoutUrl: params.checkoutUrl,
-    },
+    pricing,
     runtime: {
       strategy: 'heuristic',
       model: 'gemma4:e4b -> gemma4:31b when available',
       persistence: 'demo',
     },
+  }
+}
+
+function buildPricingCard(params: {
+  overview: Pick<DashboardPayload['overview'], 'moneyAtRiskTotal' | 'shadowPipelineValue'>
+  decisionWindow: DecisionWindow
+  topOpportunity?: MonetizationPath
+  checkoutUrl?: string
+}): PricingCard {
+  const urgencyLabel =
+    params.decisionWindow.days <= 3
+      ? 'Immediate recovery window'
+      : params.decisionWindow.days <= 7
+        ? 'This-week pricing window'
+        : 'Live expansion window'
+  const projectedReturn = [
+    `${formatCurrency(params.overview.moneyAtRiskTotal)} recoverable now`,
+    `${formatCurrency(params.overview.shadowPipelineValue)} expansion later`,
+  ].join(' · ')
+
+  if (params.overview.moneyAtRiskTotal >= 30000 || params.decisionWindow.days <= 3) {
+    return {
+      plan: 'Recovery command',
+      price: '$1,500 setup + $749/mo',
+      promise: 'Install DeltaProof as the commercial control layer before one more client cycle turns leakage into entitlement.',
+      buyerFit: 'Best for teams with one urgent account already carrying five-figure leakage or a live client expansion bundle.',
+      paybackWindow:
+        params.decisionWindow.days <= 3
+          ? 'At the current leakage rate, this pays back inside the current decision window.'
+          : 'Usually pays back on the first recovered scope reset.',
+      projectedReturn,
+      urgencyLabel,
+      ctaLabel: params.checkoutUrl ? 'Start recovery command' : 'Claim a recovery slot',
+      checkoutUrl: params.checkoutUrl,
+    }
+  }
+
+  if (params.overview.moneyAtRiskTotal >= 10000 || params.overview.shadowPipelineValue >= 25000) {
+    return {
+      plan: 'Revenue watchtower',
+      price: '$749/mo + 2% on recovered scope',
+      promise: 'Keep one workspace commercially visible until the team stops shipping unpaid upgrades by accident.',
+      buyerFit: 'Best for agencies and consultancies with a few active fixed-fee accounts and recurring revision or support drift.',
+      paybackWindow: 'Designed to pay back within one recovery cycle, not months of seat adoption.',
+      projectedReturn,
+      urgencyLabel,
+      ctaLabel: params.checkoutUrl ? 'Activate watchtower' : 'Reserve watchtower access',
+      checkoutUrl: params.checkoutUrl,
+    }
+  }
+
+  return {
+    ...DEFAULT_PRICING,
+    projectedReturn,
+    urgencyLabel,
+    ctaLabel: params.checkoutUrl ? 'Activate revenue watchtower' : 'Claim pilot access',
+    checkoutUrl: params.checkoutUrl,
   }
 }
 

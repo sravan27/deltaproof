@@ -104,6 +104,16 @@ That combination is what turns DeltaProof from a good one-off analyzer into a co
 
 That endpoint is the current runtime bridge between DeltaProof and EmbeddingGemma for local semantic motif discovery.
 
+## Why Polar matters for revenue conversion
+
+- Polar checkout links:
+  [https://polar.sh/docs/features/checkout/links](https://polar.sh/docs/features/checkout/links)
+  Verified on April 15, 2026.
+  Notes:
+  - Polar checkout links support prefilled `customer_email` and `customer_name`
+  - checkout links also accept `reference_id` and UTM query parameters for attribution
+  - that makes them a good fit for DeltaProof’s pricing panel because the product can capture buyer intent first, then open a prefilled checkout without requiring a custom backend integration
+
 ## Product interpretation
 
 The key insight is not “use the biggest model available.” It is:

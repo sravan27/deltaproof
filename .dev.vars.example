@@ -4,3 +4,5 @@ OLLAMA_FALLBACK_MODEL=gemma4:e4b
 OLLAMA_EMBED_MODEL=embeddinggemma
 OLLAMA_EMBED_DIMENSIONS=384
 POLAR_CHECKOUT_URL=https://polar.sh/checkout/replace-me
+POLAR_CHECKOUT_URL_WATCHTOWER=https://polar.sh/checkout/replace-watchtower
+POLAR_CHECKOUT_URL_COMMAND=https://polar.sh/checkout/replace-command

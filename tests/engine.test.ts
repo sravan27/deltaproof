@@ -22,6 +22,8 @@ describe('DeltaProof analysis engine', () => {
     expect(dashboard.operatorConsole.moves.length).toBeGreaterThan(0)
     expect(dashboard.watchtower.pulses.length).toBeGreaterThan(0)
     expect(dashboard.decisionWindow.days).toBeGreaterThan(0)
+    expect(dashboard.pricing.plan).toBe('Recovery command')
+    expect(dashboard.pricing.projectedReturn).toContain('$')
     expect(dashboard.executiveBrief.decisionWindowLabel).toContain('day')
     expect(dashboard.executiveBrief.markdown).toContain('## Decision')
     expect(dashboard.executiveBrief.markdown).toContain('## Decision Window')

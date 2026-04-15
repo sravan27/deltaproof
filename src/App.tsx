@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
   startTransition,
+  type FormEvent,
   type ReactNode,
 } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -36,6 +37,7 @@ import {
   formatCurrency,
   formatPercent,
   type ArtifactInput,
+  type BuyerIntentRequest,
   type CommercialScenario,
   type DashboardPayload,
   type EvidenceItem,
@@ -59,6 +61,7 @@ import {
   requestAnalysis,
   requestPortfolioBrief,
   requestPortfolioBriefMarkdown,
+  submitBuyerIntent,
   requestWorkspaceBriefMarkdown,
   requestWorkspaceCatalog,
   requestWorkspaceDashboard,
@@ -79,6 +82,14 @@ function App() {
   const [dragActive, setDragActive] = useState(false)
   const [briefStatus, setBriefStatus] = useState<'idle' | 'copying' | 'copied' | 'error'>('idle')
   const [portfolioBriefStatus, setPortfolioBriefStatus] = useState<'idle' | 'copying' | 'copied' | 'error'>('idle')
+  const [buyerIntent, setBuyerIntent] = useState({
+    name: '',
+    email: '',
+    company: '',
+    notes: '',
+  })
+  const [buyerIntentStatus, setBuyerIntentStatus] = useState<'idle' | 'submitting' | 'submitted' | 'error'>('idle')
+  const [buyerIntentMessage, setBuyerIntentMessage] = useState('')
   const [status, setStatus] = useState<'loading' | 'ready' | 'analyzing'>('loading')
   const [error, setError] = useState<string | null>(null)
   const deferredQuery = useDeferredValue(query)
@@ -157,6 +168,51 @@ function App() {
     } catch {
       setPortfolioBriefStatus('error')
       window.setTimeout(() => setPortfolioBriefStatus('idle'), 1800)
+    }
+  }
+
+  async function handleBuyerIntentSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!buyerIntent.name.trim() || !buyerIntent.email.trim() || !buyerIntent.company.trim()) {
+      setBuyerIntentStatus('error')
+      setBuyerIntentMessage('Name, work email, and company are required.')
+      return
+    }
+
+    setBuyerIntentStatus('submitting')
+    setBuyerIntentMessage('')
+
+    try {
+      const payload: BuyerIntentRequest = {
+        name: buyerIntent.name.trim(),
+        email: buyerIntent.email.trim(),
+        company: buyerIntent.company.trim(),
+        notes: buyerIntent.notes.trim() || undefined,
+        workspaceName: dashboard.workspaceName,
+        workspaceSlug: activeWorkspaceSlug,
+        plan: dashboard.pricing.plan,
+        moneyAtRiskTotal: dashboard.overview.moneyAtRiskTotal,
+        shadowPipelineValue: dashboard.overview.shadowPipelineValue,
+        decisionWindowDays: dashboard.decisionWindow.days,
+        source: 'pricing_panel',
+      }
+      const receipt = await submitBuyerIntent(payload)
+      const checkoutUrl = buildPolarCheckoutUrl(dashboard.pricing.checkoutUrl, payload, receipt.leadId)
+
+      setBuyerIntentStatus('submitted')
+      setBuyerIntentMessage(
+        checkoutUrl
+          ? 'Buyer intent captured. Opening checkout with your details prefilled.'
+          : 'Buyer intent captured. DeltaProof stored your recovery request.',
+      )
+
+      if (checkoutUrl) {
+        window.open(checkoutUrl, '_blank', 'noopener,noreferrer')
+      }
+    } catch {
+      setBuyerIntentStatus('error')
+      setBuyerIntentMessage('DeltaProof could not secure the recovery request just yet.')
     }
   }
 
@@ -1102,17 +1158,29 @@ function App() {
 
           <div id='pricing' className='panel pricing-panel'>
             <p className='eyebrow'>Monetization</p>
+            <span className='offer-pill'>{dashboard.pricing.urgencyLabel}</span>
             <h3>{dashboard.pricing.plan}</h3>
             <p className='price'>{dashboard.pricing.price}</p>
             <p className='pricing-copy'>{dashboard.pricing.promise}</p>
 
             {topOpportunity ? (
               <div className='pricing-highlight'>
-                <strong>Top path</strong>
-                <p>{topOpportunity.title}</p>
-                <span>{formatCurrency(topOpportunity.expectedValue)} expected value</span>
+                <strong>{dashboard.pricing.paybackWindow}</strong>
+                <p>{dashboard.pricing.projectedReturn}</p>
+                <span>{topOpportunity.title} is still the highest-leverage first move</span>
               </div>
             ) : null}
+
+            <div className='commercial-proof-grid'>
+              <div className='baseline-card'>
+                <h4>Best fit</h4>
+                <p>{dashboard.pricing.buyerFit}</p>
+              </div>
+              <div className='baseline-card'>
+                <h4>Why buy now</h4>
+                <p>{dashboard.decisionWindow.consequence}</p>
+              </div>
+            </div>
 
             <div className='baseline-card'>
               <h4>Current signed baseline</h4>
@@ -1123,21 +1191,63 @@ function App() {
               </ul>
             </div>
 
-            {dashboard.pricing.checkoutUrl ? (
-              <a
-                className='primary-button as-link'
-                href={dashboard.pricing.checkoutUrl}
-                target='_blank'
-                rel='noreferrer'
-              >
-                Activate checkout
-                <ArrowRight size={16} />
-              </a>
-            ) : (
-              <div className='checkout-note'>
-                Add `POLAR_CHECKOUT_URL` and the CTA becomes live instantly on the deployed product.
+            <form className='buyer-intent-form' onSubmit={(event) => void handleBuyerIntentSubmit(event)}>
+              <div className='buyer-intent-grid'>
+                <label>
+                  <span>Name</span>
+                  <input
+                    value={buyerIntent.name}
+                    onChange={(event) => setBuyerIntent((current) => ({ ...current, name: event.target.value }))}
+                    placeholder='Your name'
+                    autoComplete='name'
+                  />
+                </label>
+                <label>
+                  <span>Work email</span>
+                  <input
+                    type='email'
+                    value={buyerIntent.email}
+                    onChange={(event) => setBuyerIntent((current) => ({ ...current, email: event.target.value }))}
+                    placeholder='you@company.com'
+                    autoComplete='email'
+                  />
+                </label>
+                <label>
+                  <span>Company</span>
+                  <input
+                    value={buyerIntent.company}
+                    onChange={(event) => setBuyerIntent((current) => ({ ...current, company: event.target.value }))}
+                    placeholder='Company name'
+                    autoComplete='organization'
+                  />
+                </label>
               </div>
-            )}
+
+              <label>
+                <span>What is hurting most?</span>
+                <textarea
+                  value={buyerIntent.notes}
+                  onChange={(event) => setBuyerIntent((current) => ({ ...current, notes: event.target.value }))}
+                  placeholder='Scope creep, support drift, revision overrun, or expansion work that keeps shipping unpaid.'
+                  rows={3}
+                />
+              </label>
+
+              <div className='buyer-intent-actions'>
+                <button className='primary-button' type='submit' disabled={buyerIntentStatus === 'submitting'}>
+                  {buyerIntentStatus === 'submitting' ? 'Securing slot' : dashboard.pricing.ctaLabel}
+                  <ArrowRight size={16} />
+                </button>
+
+                {!dashboard.pricing.checkoutUrl ? (
+                  <div className='checkout-note'>
+                    Add `POLAR_CHECKOUT_URL`, `POLAR_CHECKOUT_URL_WATCHTOWER`, or `POLAR_CHECKOUT_URL_COMMAND` and the CTA will open a live checkout after the lead is captured.
+                  </div>
+                ) : null}
+              </div>
+            </form>
+
+            {buyerIntentMessage ? <p className={`buyer-intent-message ${buyerIntentStatus}`}>{buyerIntentMessage}</p> : null}
           </div>
         </section>
       </main>
@@ -1508,6 +1618,28 @@ function EvidenceCard(props: {
       </div>
     </article>
   )
+}
+
+function buildPolarCheckoutUrl(
+  baseUrl: string | undefined,
+  payload: BuyerIntentRequest,
+  leadId: string,
+): string | null {
+  if (!baseUrl) {
+    return null
+  }
+
+  const checkoutUrl = new URL(baseUrl)
+  checkoutUrl.searchParams.set('customer_email', payload.email)
+  checkoutUrl.searchParams.set('customer_name', payload.name)
+  checkoutUrl.searchParams.set('reference_id', leadId)
+  checkoutUrl.searchParams.set('utm_source', 'deltaproof')
+  checkoutUrl.searchParams.set('utm_medium', 'product')
+  checkoutUrl.searchParams.set('utm_campaign', 'pricing-panel')
+  checkoutUrl.searchParams.set('utm_content', payload.workspaceSlug)
+  checkoutUrl.searchParams.set('utm_term', payload.plan)
+
+  return checkoutUrl.toString()
 }
 
 function dedupeArtifacts(artifacts: ArtifactInput[]): ArtifactInput[] {
